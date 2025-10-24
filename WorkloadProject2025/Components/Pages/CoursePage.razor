@@ -1,0 +1,51 @@
+﻿@page "/CoursePage"
+@using WorkloadProject2025.Data.Models
+@using WorkloadProject2025.Services
+@inject CourseService courseService
+@inject ProgramsOfStudyService programsOfStudyService
+
+<CoursesForm OnCourseSaved="Save" programOfStudy="programsOfStudy"></CoursesForm>
+
+<MudCard Class="mx-auto mt-6" Style="max-width: 450px;">
+    <MudCardHeader>
+        <MudText Typo="Typo.h6" Class="font-semibold">Current Courses</MudText>
+    </MudCardHeader>
+
+    <MudCardContent>
+        <MudStack Spacing="2">
+            @foreach (var course in courses)
+            {
+                <MudCard>
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">@course.Name</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Default" />
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Text" Color="Color.Primary">View Details</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            }
+        </MudStack>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    List<Course> courses = new();
+    List<ProgramOfStudy> programsOfStudy = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        courses = await courseService.GetAllAsync();
+        programsOfStudy = await programsOfStudyService.GetAllAsync();
+    }
+
+    public async Task Save()
+    {
+        courses = await courseService.GetAllAsync();
+        StateHasChanged();
+    }
+}

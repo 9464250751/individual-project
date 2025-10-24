@@ -1,0 +1,153 @@
+﻿@page "/program-dashboard"
+@using System.Linq
+
+<h2 class="text-center my-3">📊 Program Data Dashboard</h2>
+
+<div class="container">
+    <!-- Search and Filter -->
+    <div class="d-flex justify-content-between mb-3">
+        <input class="form-control w-50" @bind="searchTerm" placeholder="🔍 Search Program..." />
+        <select class="form-select w-25" @bind="selectedDuration">
+            <option value="All">All Durations</option>
+            <option value="1">1 Year</option>
+            <option value="2">2 Years</option>
+            <option value="3">3 Years</option>
+            <option value="4">4 Years</option>
+        </select>
+    </div>
+
+    <!-- Bar Chart -->
+    <canvas id="programChart" width="800" height="400"></canvas>
+
+    <!-- Selected Program Details -->
+    @if (selectedProgram != null)
+    {
+        <div class="card mt-4 shadow-sm">
+            <div class="card-body">
+                <h4 class="card-title">@selectedProgram.Name</h4>
+                <p><b>Duration:</b> @selectedProgram.DurationYears years</p>
+                <p><b>Instructor:</b> @selectedProgram.Instructor</p>
+                <p><b>Workload:</b> @selectedProgram.WorkloadHours hrs/week</p>
+                <p><b>Tuition:</b> $@selectedProgram.Tuition / year</p>
+                <p><b>Courses:</b> @string.Join(", ", selectedProgram.Courses)</p>
+                <p><b>Description:</b> @selectedProgram.Description</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <p class="text-muted mt-4 text-center">Click on a bar to view program details.</p>
+    }
+</div>
+
+@code {
+    private class ProgramInfo
+    {
+        public string Name { get; set; }
+        public int DurationYears { get; set; }
+        public int TotalCourses { get; set; }
+        public string Instructor { get; set; }
+        public int WorkloadHours { get; set; }
+        public int Tuition { get; set; }
+        public string[] Courses { get; set; }
+        public string Description { get; set; }
+    }
+
+    private List<ProgramInfo> programs = new();
+    private ProgramInfo? selectedProgram;
+    private string searchTerm = "";
+    private string selectedDuration = "All";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            LoadPrograms();
+            await RenderChart();
+        }
+    }
+
+    private void LoadPrograms()
+    {
+        programs = new List<ProgramInfo>
+        {
+            new ProgramInfo
+            {
+                Name = "Computer Science",
+                DurationYears = 2,
+                TotalCourses = 6,
+                Instructor = "Mr. John Doe",
+                WorkloadHours = 20,
+                Tuition = 8000,
+                Courses = new[] { "Programming", "Database", "Networking", "AI", "Web Dev" },
+                Description = "Focuses on programming, databases, networking, and AI foundations."
+            },
+            new ProgramInfo
+            {
+                Name = "Business Administration",
+                DurationYears = 3,
+                TotalCourses = 8,
+                Instructor = "Ms. Emily Rose",
+                WorkloadHours = 18,
+                Tuition = 7500,
+                Courses = new[] { "Economics", "Marketing", "Accounting", "Finance" },
+                Description = "Covers management, marketing, and finance for business professionals."
+            },
+            new ProgramInfo
+            {
+                Name = "Nursing",
+                DurationYears = 4,
+                TotalCourses = 10,
+                Instructor = "Dr. Patel",
+                WorkloadHours = 25,
+                Tuition = 9500,
+                Courses = new[] { "Anatomy", "Pharmacology", "Clinical Practice" },
+                Description = "Prepares students for patient care, clinical procedures, and health sciences."
+            },
+            new ProgramInfo
+            {
+                Name = "IT Support",
+                DurationYears = 1,
+                TotalCourses = 5,
+                Instructor = "Mr. Adam Smith",
+                WorkloadHours = 15,
+                Tuition = 6000,
+                Courses = new[] { "Hardware", "Networking", "Troubleshooting", "OS Management" },
+                Description = "Focuses on hands-on technical support and IT infrastructure."
+            },
+            new ProgramInfo
+            {
+                Name = "Graphic Design",
+                DurationYears = 2,
+                TotalCourses = 7,
+                Instructor = "Ms. Lara Green",
+                WorkloadHours = 22,
+                Tuition = 8200,
+                Courses = new[] { "Photoshop", "Illustrator", "Branding", "UI/UX Design" },
+                Description = "Teaches visual design principles, branding, and user interface design."
+            }
+        };
+    }
+
+    private async Task RenderChart()
+    {
+        var filtered = programs
+            .Where(p => (string.IsNullOrEmpty(searchTerm) || p.Name.ToLower().Contains(searchTerm.ToLower()))
+                     && (selectedDuration == "All" || p.DurationYears.ToString() == selectedDuration))
+            .ToList();
+
+        var labels = filtered.Select(p => p.Name).ToArray();
+        var data = filtered.Select(p => p.Tuition).ToArray();
+
+        await JS.InvokeVoidAsync("renderProgramChart", labels, data);
+    }
+
+    private async Task OnBarClicked(string programName)
+    {
+        selectedProgram = programs.FirstOrDefault(p => p.Name == programName);
+        StateHasChanged();
+    }
+
+    [Inject]
+    IJSRuntime JS { get; set; } = default!;
+}

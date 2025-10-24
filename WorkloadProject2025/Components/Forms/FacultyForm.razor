@@ -1,0 +1,80 @@
+﻿@using WorkloadProject2025.Data.Models
+@inject FacultyService facultyService
+
+<MudCard Class="mx-auto mt-6 pa-4" Style="max-width: 650px">
+
+    <MudCardHeader>
+        <MudText Typo="Typo.h6" Class="font-semibold">Add New Faculty Member</MudText>
+    </MudCardHeader>
+
+    <MudCardContent>
+        <MudStack Spacing="2">
+            <MudTextField @bind-Value="faculty.FirstName"
+                          Label="First Name"
+                          Required="true"
+                          Class="mb-2"
+                          Style="width:70%"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Person">
+            </MudTextField>
+            <MudTextField @bind-Value="faculty.LastName"
+                          Label="Last Name"
+                          Required="true"
+                          Style="width:70%"
+                          Class="mb-2"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Person">
+            </MudTextField>
+            <MudTextField @bind-Value="faculty.Email"
+                          Label="Email"
+                          Required="true"
+                          Class="mb-2"
+                          Style="width:90%"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Email">
+            </MudTextField>
+            <MudTextField @bind-Value="faculty.PhoneNumber"
+                          Label="Phone"
+                          Required="true"
+                          Class="mb-2"
+                          Style="width:40%"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Phone">
+            </MudTextField>
+        </MudStack>
+    </MudCardContent>
+
+    <MudCardActions Class="d-flex justify-center">
+        <MudButton Variant="Variant.Text"
+                   Color="Color.Secondary"
+                   Class="mx-2"
+                   OnClick="Cancel">
+            Cancel
+        </MudButton>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Class="mx-2"
+                   OnClick="Save">
+            Submit
+        </MudButton>
+    </MudCardActions>
+
+</MudCard>
+
+
+@code {
+    private Faculty faculty { get; set; } = new Faculty();
+
+    private void Cancel()
+    {
+        faculty = new Faculty();
+    }
+
+    private async Task Save()
+    {
+        await facultyService.AddAsync(faculty);
+        Console.WriteLine($"Saving Faculty: {faculty.Email}");
+        Cancel();
+    }
+
+}
