@@ -1,153 +1,148 @@
 ﻿@page "/program-dashboard"
-@using System.Linq
+@using WorkloadProject2025.Data.Models
+@using WorkloadProject2025.Services
+@inject IProgramsOfStudyService _programService
+@inject IDepartmentService _departmentService
 
-<h2 class="text-center my-3">📊 Program Data Dashboard</h2>
+<PageTitle>Program Dashboard</PageTitle>
 
-<div class="container">
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">
+        📊 PROGRAM DATA DASHBOARD
+    </MudText>
+
     <!-- Search and Filter -->
-    <div class="d-flex justify-content-between mb-3">
-        <input class="form-control w-50" @bind="searchTerm" placeholder="🔍 Search Program..." />
-        <select class="form-select w-25" @bind="selectedDuration">
-            <option value="All">All Durations</option>
-            <option value="1">1 Year</option>
-            <option value="2">2 Years</option>
-            <option value="3">3 Years</option>
-            <option value="4">4 Years</option>
-        </select>
-    </div>
+    <MudGrid Class="mb-4">
+        <MudItem xs="12" sm="8">
+            <MudTextField @bind-Value="searchTerm" Label="Search Program" Variant="Variant.Outlined" 
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                          OnKeyUp="@(() => FilterAndRender())" />
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudSelect Value="@selectedDepartmentId" Label="Filter by Department" Variant="Variant.Outlined"
+                       T="int" ValueChanged="@OnDepartmentChanged">
+                <MudSelectItem Value="0">All Departments</MudSelectItem>
+                @foreach (var dept in departments)
+                {
+                    <MudSelectItem Value="@dept.Id">@dept.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+    </MudGrid>
 
     <!-- Bar Chart -->
-    <canvas id="programChart" width="800" height="400"></canvas>
+    <MudPaper Elevation="3" Class="pa-4 mb-4">
+        <canvas id="programChart" width="1000" height="400" style="width: 100%; max-width: 1000px;"></canvas>
+    </MudPaper>
 
     <!-- Selected Program Details -->
     @if (selectedProgram != null)
     {
-        <div class="card mt-4 shadow-sm">
-            <div class="card-body">
-                <h4 class="card-title">@selectedProgram.Name</h4>
-                <p><b>Duration:</b> @selectedProgram.DurationYears years</p>
-                <p><b>Instructor:</b> @selectedProgram.Instructor</p>
-                <p><b>Workload:</b> @selectedProgram.WorkloadHours hrs/week</p>
-                <p><b>Tuition:</b> $@selectedProgram.Tuition / year</p>
-                <p><b>Courses:</b> @string.Join(", ", selectedProgram.Courses)</p>
-                <p><b>Description:</b> @selectedProgram.Description</p>
-            </div>
-        </div>
+        <MudPaper Elevation="3" Class="pa-4">
+            <MudText Typo="Typo.h5" GutterBottom="true">Program Details</MudText>
+            <MudDivider Class="mb-3" />
+            
+            <MudGrid>
+                <MudItem xs="12" sm="6">
+                    <MudText><strong>Name:</strong> @selectedProgram.Name</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText><strong>Department:</strong> @(selectedProgram.Department?.Name ?? "N/A")</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText><strong>School:</strong> @(selectedProgram.Department?.School?.Name ?? "N/A")</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText><strong>Number of Courses:</strong> @(selectedProgram.Courses?.Count ?? 0)</MudText>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudText><strong>Courses:</strong></MudText>
+                    @if (selectedProgram.Courses != null && selectedProgram.Courses.Any())
+                    {
+                        <MudList T="string" Dense="true">
+                            @foreach (var course in selectedProgram.Courses)
+                            {
+                                <MudListItem T="string">
+                                    <MudText>• @course.Name (@course.Hours hours)</MudText>
+                                </MudListItem>
+                            }
+                        </MudList>
+                    }
+                    else
+                    {
+                        <MudText Color="Color.Secondary">No courses assigned yet</MudText>
+                    }
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
     }
     else
     {
-        <p class="text-muted mt-4 text-center">Click on a bar to view program details.</p>
+        <MudAlert Severity="Severity.Info">Click on a bar in the chart to view program details.</MudAlert>
     }
-</div>
+</MudContainer>
 
 @code {
-    private class ProgramInfo
-    {
-        public string Name { get; set; }
-        public int DurationYears { get; set; }
-        public int TotalCourses { get; set; }
-        public string Instructor { get; set; }
-        public int WorkloadHours { get; set; }
-        public int Tuition { get; set; }
-        public string[] Courses { get; set; }
-        public string Description { get; set; }
-    }
-
-    private List<ProgramInfo> programs = new();
-    private ProgramInfo? selectedProgram;
+    private List<ProgramOfStudy> programs = new();
+    private List<Department> departments = new();
+    private ProgramOfStudy? selectedProgram;
     private string searchTerm = "";
-    private string selectedDuration = "All";
+    private int selectedDepartmentId = 0;
+    private DotNetObjectReference<ProgramDashboardPage>? objRef;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            LoadPrograms();
-            await RenderChart();
+            objRef = DotNetObjectReference.Create(this);
+            await FilterAndRender();
         }
     }
 
-    private void LoadPrograms()
+    private async Task LoadData()
     {
-        programs = new List<ProgramInfo>
-        {
-            new ProgramInfo
-            {
-                Name = "Computer Science",
-                DurationYears = 2,
-                TotalCourses = 6,
-                Instructor = "Mr. John Doe",
-                WorkloadHours = 20,
-                Tuition = 8000,
-                Courses = new[] { "Programming", "Database", "Networking", "AI", "Web Dev" },
-                Description = "Focuses on programming, databases, networking, and AI foundations."
-            },
-            new ProgramInfo
-            {
-                Name = "Business Administration",
-                DurationYears = 3,
-                TotalCourses = 8,
-                Instructor = "Ms. Emily Rose",
-                WorkloadHours = 18,
-                Tuition = 7500,
-                Courses = new[] { "Economics", "Marketing", "Accounting", "Finance" },
-                Description = "Covers management, marketing, and finance for business professionals."
-            },
-            new ProgramInfo
-            {
-                Name = "Nursing",
-                DurationYears = 4,
-                TotalCourses = 10,
-                Instructor = "Dr. Patel",
-                WorkloadHours = 25,
-                Tuition = 9500,
-                Courses = new[] { "Anatomy", "Pharmacology", "Clinical Practice" },
-                Description = "Prepares students for patient care, clinical procedures, and health sciences."
-            },
-            new ProgramInfo
-            {
-                Name = "IT Support",
-                DurationYears = 1,
-                TotalCourses = 5,
-                Instructor = "Mr. Adam Smith",
-                WorkloadHours = 15,
-                Tuition = 6000,
-                Courses = new[] { "Hardware", "Networking", "Troubleshooting", "OS Management" },
-                Description = "Focuses on hands-on technical support and IT infrastructure."
-            },
-            new ProgramInfo
-            {
-                Name = "Graphic Design",
-                DurationYears = 2,
-                TotalCourses = 7,
-                Instructor = "Ms. Lara Green",
-                WorkloadHours = 22,
-                Tuition = 8200,
-                Courses = new[] { "Photoshop", "Illustrator", "Branding", "UI/UX Design" },
-                Description = "Teaches visual design principles, branding, and user interface design."
-            }
-        };
-    }
-
-    private async Task RenderChart()
-    {
-        var filtered = programs
-            .Where(p => (string.IsNullOrEmpty(searchTerm) || p.Name.ToLower().Contains(searchTerm.ToLower()))
-                     && (selectedDuration == "All" || p.DurationYears.ToString() == selectedDuration))
-            .ToList();
-
-        var labels = filtered.Select(p => p.Name).ToArray();
-        var data = filtered.Select(p => p.Tuition).ToArray();
-
-        await JS.InvokeVoidAsync("renderProgramChart", labels, data);
-    }
-
-    private async Task OnBarClicked(string programName)
-    {
-        selectedProgram = programs.FirstOrDefault(p => p.Name == programName);
+        programs = await _programService.GetAllWithDetailsAsync();
+        departments = await _departmentService.GetAllAsync();
         StateHasChanged();
     }
 
+    private async Task OnDepartmentChanged(int departmentId)
+    {
+        selectedDepartmentId = departmentId;
+        await FilterAndRender();
+    }
+
+    private async Task FilterAndRender()
+    {
+        var filtered = programs
+            .Where(p => (string.IsNullOrEmpty(searchTerm) || p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                     && (selectedDepartmentId == 0 || p.DepartmentId == selectedDepartmentId))
+            .ToList();
+
+        var labels = filtered.Select(p => p.Name).ToArray();
+        var data = filtered.Select(p => p.Courses?.Count ?? 0).ToArray();
+
+        await JS.InvokeVoidAsync("renderProgramChart", labels, data, objRef);
+    }
+
+    [JSInvokable]
+    public async Task OnBarClickedJS(string programName)
+    {
+        selectedProgram = programs.FirstOrDefault(p => p.Name == programName);
+        StateHasChanged();
+        await Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        objRef?.Dispose();
+    }
+
     [Inject]
-    IJSRuntime JS { get; set; } = default!;
+    public IJSRuntime JS { get; set; } = default!;
 }
