@@ -43,5 +43,15 @@ namespace WorkloadProject2025.Services
             //LINQ is a language that lets you write queries in C#
             return _context.ProgramsOfStudy.FirstOrDefaultAsync(program => program.Id == id);
         }
+
+        public Task<List<ProgramOfStudy>> GetAllWithDetailsAsync(CancellationToken cancellationToken = default)
+        {
+            // Include related data for the dashboard
+            return _context.ProgramsOfStudy
+                .Include(p => p.Department)
+                    .ThenInclude(d => d.School)
+                .Include(p => p.Courses)
+                .ToListAsync(cancellationToken);
+        }
     }
 }
