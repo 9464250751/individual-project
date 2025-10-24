@@ -47,10 +47,22 @@
                     <MudText><strong>Name:</strong> @selectedProgram.Name</MudText>
                 </MudItem>
                 <MudItem xs="12" sm="6">
+                    <MudText><strong>Duration:</strong> @selectedProgram.DurationYears year(s)</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
                     <MudText><strong>Department:</strong> @(selectedProgram.Department?.Name ?? "N/A")</MudText>
                 </MudItem>
                 <MudItem xs="12" sm="6">
                     <MudText><strong>School:</strong> @(selectedProgram.Department?.School?.Name ?? "N/A")</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText><strong>Instructor:</strong> @(selectedProgram.Instructor ?? "Not assigned")</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText><strong>Workload:</strong> @selectedProgram.WorkloadHours hrs/week</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="6">
+                    <MudText><strong>Tuition:</strong> $@selectedProgram.Tuition.ToString("N2")/year</MudText>
                 </MudItem>
                 <MudItem xs="12" sm="6">
                     <MudText><strong>Number of Courses:</strong> @(selectedProgram.Courses?.Count ?? 0)</MudText>
