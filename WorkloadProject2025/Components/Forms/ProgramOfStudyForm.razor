@@ -20,13 +20,39 @@
 
             <MudSelect T="int"
                        @bind-value="POS.DepartmentId"
+                       Label="Department"
                        Required="true">
                 @foreach (var dept in department)
                 {
                     <MudSelectItem Value="@dept.Id">@dept.Name</MudSelectItem>
                 }
-
             </MudSelect>
+
+            <MudNumericField Label="Duration (years)"
+                             @bind-Value="POS.DurationYears"
+                             Min="1"
+                             Max="10"
+                             Adornment="Adornment.End"
+                             AdornmentText="years" />
+
+            <MudTextField Label="Instructor"
+                          @bind-Value="POS.Instructor"
+                          Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Person" />
+
+            <MudNumericField Label="Workload (hours/week)"
+                             @bind-Value="POS.WorkloadHours"
+                             Min="0"
+                             Max="60"
+                             Adornment="Adornment.End"
+                             AdornmentText="hrs/week" />
+
+            <MudNumericField Label="Tuition (per year)"
+                             @bind-Value="POS.Tuition"
+                             Min="0"
+                             Format="N2"
+                             Adornment="Adornment.Start"
+                             AdornmentText="$" />
 
         </MudStack>
     </MudCardContent>
