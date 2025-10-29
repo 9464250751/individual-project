@@ -210,6 +210,10 @@
     private string selectedPosition = "All";
     private string selectedSemester = "Fall 2024";
     
+    private string previousDepartment = "All";
+    private string previousPosition = "All";
+    private string previousSemester = "Fall 2024";
+    
     // Summary statistics
     private int totalFaculty = 0;
     private double averageWorkloadHours = 0;
@@ -248,7 +252,9 @@
 
     private void GenerateSampleData()
     {
-        // Generate sample data if database is empty
+        // NOTE: This generates sample data for demonstration purposes only.
+        // In production, this should be replaced with actual database seeding
+        // or removed entirely if real data exists.
         if (!allFaculty.Any())
         {
             allFaculty = new List<Faculty>
@@ -315,7 +321,7 @@
             {
                 Email = faculty.Email,
                 FacultyName = $"{faculty.FirstName} {faculty.LastName}",
-                Department = faculty.Department?.Name ?? departments.FirstOrDefault()?.Name ?? "Computer Science",
+                Department = faculty.Department?.Name ?? departments.FirstOrDefault()?.Name ?? "Unassigned",
                 Position = faculty.Position ?? "Professor",
                 Phone = faculty.PhoneNumber,
                 TotalCourses = courseWorkloads.Count,
@@ -399,9 +405,20 @@
 
     protected override void OnParametersSet()
     {
-        ApplyFilters();
-        CalculateStatistics();
-        GenerateChartData();
+        // Only recalculate if filters have actually changed
+        if (selectedDepartment != previousDepartment || 
+            selectedPosition != previousPosition || 
+            selectedSemester != previousSemester)
+        {
+            previousDepartment = selectedDepartment;
+            previousPosition = selectedPosition;
+            previousSemester = selectedSemester;
+            
+            ProcessWorkloadData();
+            ApplyFilters();
+            CalculateStatistics();
+            GenerateChartData();
+        }
     }
 
     // View Models
