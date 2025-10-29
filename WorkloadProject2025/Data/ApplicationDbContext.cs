@@ -14,6 +14,7 @@ namespace WorkloadProject2025.Data
         public DbSet<Term> Terms { get; set; }
         public DbSet<WorkloadCategory> WorkloadCategories { get; set; }
         public DbSet<ProgramOfStudy> ProgramsOfStudy { get; set; }
+        public DbSet<FacultyWorkload> FacultyWorkloads { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -37,6 +38,28 @@ namespace WorkloadProject2025.Data
                 .WithMany(p => p.Courses)
                 .HasForeignKey(c => c.ProgramOfStudyId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Faculty-Department relationship
+            modelBuilder.Entity<Faculty>()
+                .HasOne(f => f.Department)
+                .WithMany()
+                .HasForeignKey(f => f.DepartmentId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // FacultyWorkload-Faculty relationship
+            modelBuilder.Entity<FacultyWorkload>()
+                .HasOne(fw => fw.Faculty)
+                .WithMany()
+                .HasForeignKey(fw => fw.FacultyEmail)
+                .HasPrincipalKey(f => f.Email)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // FacultyWorkload-Course relationship
+            modelBuilder.Entity<FacultyWorkload>()
+                .HasOne(fw => fw.Course)
+                .WithMany()
+                .HasForeignKey(fw => fw.CourseId)
+                .OnDelete(DeleteBehavior.SetNull);
 
             
 
