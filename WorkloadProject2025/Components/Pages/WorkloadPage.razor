@@ -255,7 +255,7 @@
                    $"\"{workload.Year}\"\n";
         }
 
-        var fileName = $"workload_export_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
+        var fileName = $"workload_export_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv";
         await JSRuntime.InvokeVoidAsync("downloadFile", fileName, csv);
     }
 

@@ -79,7 +79,7 @@ namespace WorkloadProject2025.Services
                     ProjectHours = source.ProjectHours,
                     Semester = toSemester,
                     Year = toYear,
-                    StartDate = DateTime.Now
+                    StartDate = DateTime.UtcNow
                 };
 
                 _context.FacultyWorkloads.Add(copied);
@@ -109,7 +109,7 @@ namespace WorkloadProject2025.Services
                     HoursPerWeek = course.Hours,
                     Semester = semester,
                     Year = year,
-                    StartDate = DateTime.Now
+                    StartDate = DateTime.UtcNow
                 };
 
                 _context.FacultyWorkloads.Add(workload);
