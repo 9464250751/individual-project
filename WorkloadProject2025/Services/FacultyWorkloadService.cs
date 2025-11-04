@@ -55,5 +55,69 @@ namespace WorkloadProject2025.Services
 
             return workload;
         }
+
+        public async Task<List<FacultyWorkload>> CopyWorkloadToSemesterAsync(string fromSemester, int fromYear, string toSemester, int toYear, CancellationToken cancellationToken = default)
+        {
+            var sourceWorkloads = await _context.FacultyWorkloads
+                .Where(fw => fw.Semester == fromSemester && fw.Year == fromYear)
+                .ToListAsync(cancellationToken);
+
+            var copiedWorkloads = new List<FacultyWorkload>();
+
+            foreach (var source in sourceWorkloads)
+            {
+                var copied = new FacultyWorkload
+                {
+                    FacultyEmail = source.FacultyEmail,
+                    Type = source.Type,
+                    CourseId = source.CourseId,
+                    DeliveryType = source.DeliveryType,
+                    HoursPerWeek = source.HoursPerWeek,
+                    TotalStudents = source.TotalStudents,
+                    CoordinationRole = source.CoordinationRole,
+                    ProjectName = source.ProjectName,
+                    ProjectHours = source.ProjectHours,
+                    Semester = toSemester,
+                    Year = toYear,
+                    StartDate = DateTime.Now
+                };
+
+                _context.FacultyWorkloads.Add(copied);
+                copiedWorkloads.Add(copied);
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+            return copiedWorkloads;
+        }
+
+        public async Task<List<FacultyWorkload>> CopyProgramCoursesToWorkloadAsync(int programId, string semester, int year, string facultyEmail, CancellationToken cancellationToken = default)
+        {
+            var courses = await _context.Courses
+                .Where(c => c.ProgramOfStudyId == programId)
+                .ToListAsync(cancellationToken);
+
+            var workloads = new List<FacultyWorkload>();
+
+            foreach (var course in courses)
+            {
+                var workload = new FacultyWorkload
+                {
+                    FacultyEmail = facultyEmail,
+                    Type = WorkloadType.course,
+                    CourseId = course.Id,
+                    DeliveryType = "Lecture",
+                    HoursPerWeek = course.Hours,
+                    Semester = semester,
+                    Year = year,
+                    StartDate = DateTime.Now
+                };
+
+                _context.FacultyWorkloads.Add(workload);
+                workloads.Add(workload);
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+            return workloads;
+        }
     }
 }

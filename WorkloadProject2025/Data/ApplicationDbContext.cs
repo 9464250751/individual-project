@@ -46,6 +46,13 @@ namespace WorkloadProject2025.Data
                 .HasForeignKey(f => f.DepartmentId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            // Faculty-WorkloadCategory relationship
+            modelBuilder.Entity<Faculty>()
+                .HasOne(f => f.WorkloadCategory)
+                .WithMany()
+                .HasForeignKey(f => f.WorkloadCategoryId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // FacultyWorkload-Faculty relationship
             modelBuilder.Entity<FacultyWorkload>()
                 .HasOne(fw => fw.Faculty)
