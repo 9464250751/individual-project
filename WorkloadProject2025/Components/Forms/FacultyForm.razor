@@ -1,5 +1,6 @@
-﻿@using WorkloadProject2025.Data.Models
+@using WorkloadProject2025.Data.Models
 @inject FacultyService facultyService
+@inject IWorkloadCategoriesService workloadCategoriesService
 
 <MudCard Class="mx-auto mt-6 pa-4" Style="max-width: 650px">
 
@@ -41,6 +42,20 @@
                           Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Phone">
             </MudTextField>
+            <MudSelect @bind-Value="faculty.WorkloadCategoryId"
+                       Label="Workload Category"
+                       Variant="Variant.Outlined"
+                       AnchorOrigin="Origin.BottomCenter"
+                       Class="mb-2"
+                       Style="width:70%">
+                <MudSelectItem Value="@((int?)null)">None</MudSelectItem>
+                @foreach (var category in workloadCategories)
+                {
+                    <MudSelectItem Value="@((int?)category.Id)">
+                        @category.MiniumHours - @category.MaximumHours hours
+                    </MudSelectItem>
+                }
+            </MudSelect>
         </MudStack>
     </MudCardContent>
 
@@ -64,6 +79,12 @@
 
 @code {
     private Faculty faculty { get; set; } = new Faculty();
+    private List<WorkloadCategory> workloadCategories = new List<WorkloadCategory>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        workloadCategories = await workloadCategoriesService.GetAllAsync();
+    }
 
     private void Cancel()
     {
