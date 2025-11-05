@@ -221,7 +221,6 @@
     private async Task LoadWorkloads()
     {
         allWorkloads = await workloadService.GetAllAsync();
-        workloads = allWorkloads;
         
         // Extract unique years from workloads
         availableYears = allWorkloads
@@ -230,6 +229,9 @@
             .Distinct()
             .OrderByDescending(y => y)
             .ToList();
+        
+        // Reapply current filter
+        workloads = GetWorkloadsByYear(selectedYear);
     }
 
     private List<FacultyWorkload> GetWorkloadsByYear(int? year)
