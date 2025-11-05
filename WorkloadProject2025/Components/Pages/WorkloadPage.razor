@@ -252,6 +252,30 @@
         StateHasChanged();
     }
 
+    private string GenerateCsv(IEnumerable<FacultyWorkload> workloads)
+    {
+        var csv = new System.Text.StringBuilder();
+        csv.AppendLine("Faculty Email,Faculty Name,Type,Course,Delivery Type,Hours Per Week,Total Students,Coordination Role,Project Name,Project Hours,Semester,Year");
+        
+        foreach (var workload in workloads)
+        {
+            csv.Append($"\"{workload.FacultyEmail}\",");
+            csv.Append($"\"{GetFacultyName(workload)}\",");
+            csv.Append($"\"{workload.Type}\",");
+            csv.Append($"\"{workload.Course?.Name ?? ""}\",");
+            csv.Append($"\"{workload.DeliveryType ?? ""}\",");
+            csv.Append($"\"{workload.HoursPerWeek ?? 0}\",");
+            csv.Append($"\"{workload.TotalStudents ?? 0}\",");
+            csv.Append($"\"{workload.CoordinationRole ?? ""}\",");
+            csv.Append($"\"{workload.ProjectName ?? ""}\",");
+            csv.Append($"\"{workload.ProjectHours ?? 0}\",");
+            csv.Append($"\"{workload.Semester}\",");
+            csv.AppendLine($"\"{workload.Year}\"");
+        }
+
+        return csv.ToString();
+    }
+
     private async Task ExportWorkloadByYear()
     {
         if (!selectedYear.HasValue) return;
@@ -264,24 +288,7 @@
             return;
         }
 
-        var csv = "Faculty Email,Faculty Name,Type,Course,Delivery Type,Hours Per Week,Total Students,Coordination Role,Project Name,Project Hours,Semester,Year\n";
-        
-        foreach (var workload in yearWorkloads)
-        {
-            csv += $"\"{workload.FacultyEmail}\"," +
-                   $"\"{GetFacultyName(workload)}\"," +
-                   $"\"{workload.Type}\"," +
-                   $"\"{workload.Course?.Name ?? ""}\"," +
-                   $"\"{workload.DeliveryType ?? ""}\"," +
-                   $"\"{workload.HoursPerWeek ?? 0}\"," +
-                   $"\"{workload.TotalStudents ?? 0}\"," +
-                   $"\"{workload.CoordinationRole ?? ""}\"," +
-                   $"\"{workload.ProjectName ?? ""}\"," +
-                   $"\"{workload.ProjectHours ?? 0}\"," +
-                   $"\"{workload.Semester}\"," +
-                   $"\"{workload.Year}\"\n";
-        }
-
+        var csv = GenerateCsv(yearWorkloads);
         var fileName = $"workload_{selectedYear.Value}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv";
         await JSRuntime.InvokeVoidAsync("downloadFile", fileName, csv);
     }
@@ -331,24 +338,7 @@
     {
         if (!selectedWorkloads.Any()) return;
 
-        var csv = "Faculty Email,Faculty Name,Type,Course,Delivery Type,Hours Per Week,Total Students,Coordination Role,Project Name,Project Hours,Semester,Year\n";
-        
-        foreach (var workload in selectedWorkloads)
-        {
-            csv += $"\"{workload.FacultyEmail}\"," +
-                   $"\"{GetFacultyName(workload)}\"," +
-                   $"\"{workload.Type}\"," +
-                   $"\"{workload.Course?.Name ?? ""}\"," +
-                   $"\"{workload.DeliveryType ?? ""}\"," +
-                   $"\"{workload.HoursPerWeek ?? 0}\"," +
-                   $"\"{workload.TotalStudents ?? 0}\"," +
-                   $"\"{workload.CoordinationRole ?? ""}\"," +
-                   $"\"{workload.ProjectName ?? ""}\"," +
-                   $"\"{workload.ProjectHours ?? 0}\"," +
-                   $"\"{workload.Semester}\"," +
-                   $"\"{workload.Year}\"\n";
-        }
-
+        var csv = GenerateCsv(selectedWorkloads);
         var fileName = $"workload_export_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv";
         await JSRuntime.InvokeVoidAsync("downloadFile", fileName, csv);
     }
