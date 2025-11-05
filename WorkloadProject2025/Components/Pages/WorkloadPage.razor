@@ -237,11 +237,11 @@
             .ToList();
     }
 
-    private async Task FilterByYear()
+    private void FilterByYear()
     {
         if (selectedYear.HasValue)
         {
-            workloads = await workloadService.GetByYearAsync(selectedYear.Value);
+            workloads = allWorkloads.Where(w => w.Year == selectedYear.Value).ToList();
         }
         else
         {
@@ -254,7 +254,7 @@
     {
         if (!selectedYear.HasValue) return;
 
-        var yearWorkloads = await workloadService.GetByYearAsync(selectedYear.Value);
+        var yearWorkloads = allWorkloads.Where(w => w.Year == selectedYear.Value).ToList();
         
         if (!yearWorkloads.Any())
         {
