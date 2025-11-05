@@ -237,16 +237,18 @@
             .ToList();
     }
 
+    private List<FacultyWorkload> GetWorkloadsByYear(int? year)
+    {
+        if (year.HasValue)
+        {
+            return allWorkloads.Where(w => w.Year == year.Value).ToList();
+        }
+        return allWorkloads;
+    }
+
     private void FilterByYear()
     {
-        if (selectedYear.HasValue)
-        {
-            workloads = allWorkloads.Where(w => w.Year == selectedYear.Value).ToList();
-        }
-        else
-        {
-            workloads = allWorkloads;
-        }
+        workloads = GetWorkloadsByYear(selectedYear);
         StateHasChanged();
     }
 
@@ -254,7 +256,7 @@
     {
         if (!selectedYear.HasValue) return;
 
-        var yearWorkloads = allWorkloads.Where(w => w.Year == selectedYear.Value).ToList();
+        var yearWorkloads = GetWorkloadsByYear(selectedYear);
         
         if (!yearWorkloads.Any())
         {

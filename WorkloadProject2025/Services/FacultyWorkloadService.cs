@@ -45,17 +45,6 @@ namespace WorkloadProject2025.Services
                 .ToListAsync(cancellationToken);
         }
 
-        public async Task<List<FacultyWorkload>> GetByYearAsync(int year, CancellationToken cancellationToken = default)
-        {
-            return await _context.FacultyWorkloads
-                .Include(fw => fw.Faculty)
-                    .ThenInclude(f => f.Department)
-                .Include(fw => fw.Course)
-                    .ThenInclude(c => c.ProgramOfStudy)
-                .Where(fw => fw.Year == year)
-                .ToListAsync(cancellationToken);
-        }
-
         public async Task<FacultyWorkload> AddAsync(FacultyWorkload workload, CancellationToken cancellationToken = default)
         {
             if (workload == null)
