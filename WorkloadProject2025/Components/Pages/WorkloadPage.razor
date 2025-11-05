@@ -41,6 +41,32 @@
         </MudStack>
     </MudPaper>
 
+    <!-- Year Filter and Export Section -->
+    <MudPaper Class="pa-4 mb-4" Elevation="2">
+        <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+            <MudSelect Value="selectedYear" 
+                       Label="Select Year" 
+                       Variant="Variant.Outlined"
+                       Style="max-width: 200px;"
+                       T="int?"
+                       AnchorOrigin="Origin.BottomCenter"
+                       ValueChanged="OnYearChanged">
+                <MudSelectItem Value="@((int?)null)">All Years</MudSelectItem>
+                @foreach (var year in availableYears)
+                {
+                    <MudSelectItem Value="@((int?)year)">@year</MudSelectItem>
+                }
+            </MudSelect>
+            <MudButton Variant="Variant.Filled" 
+                       Color="Color.Info" 
+                       StartIcon="@Icons.Material.Filled.Download"
+                       OnClick="ExportWorkloadByYear"
+                       Disabled="@(selectedYear == null)">
+                Export Year @(selectedYear?.ToString() ?? "")
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+
     <!-- Add Workload Form -->
     @if (showAddForm)
     {
@@ -155,11 +181,16 @@
 
 @code {
     private List<FacultyWorkload> workloads = new List<FacultyWorkload>();
+    private List<FacultyWorkload> allWorkloads = new List<FacultyWorkload>();
     private HashSet<FacultyWorkload> selectedWorkloads = new HashSet<FacultyWorkload>();
     private bool showAddForm = false;
     private bool showCopyWorkloadForm = false;
     private bool showCopyProgramForm = false;
     private MudTable<FacultyWorkload>? table;
+
+    // Year filter variables
+    private int? selectedYear = null;
+    private List<int> availableYears = new List<int>();
 
     // Copy Workload variables
     private string fromSemester = "Fall 2024";
@@ -189,7 +220,75 @@
 
     private async Task LoadWorkloads()
     {
-        workloads = await workloadService.GetAllAsync();
+        allWorkloads = await workloadService.GetAllAsync();
+        
+        // Extract unique years from workloads
+        availableYears = allWorkloads
+            .Where(w => w.Year.HasValue)
+            .Select(w => w.Year!.Value)
+            .Distinct()
+            .OrderByDescending(y => y)
+            .ToList();
+        
+        // Reapply current filter
+        workloads = GetWorkloadsByYear(selectedYear);
+    }
+
+    private List<FacultyWorkload> GetWorkloadsByYear(int? year)
+    {
+        if (year.HasValue)
+        {
+            return allWorkloads.Where(w => w.Year == year.Value).ToList();
+        }
+        return allWorkloads;
+    }
+
+    private void OnYearChanged(int? year)
+    {
+        selectedYear = year;
+        workloads = GetWorkloadsByYear(selectedYear);
+    }
+
+    private string GenerateCsv(IEnumerable<FacultyWorkload> workloads)
+    {
+        var csv = new System.Text.StringBuilder();
+        csv.AppendLine("Faculty Email,Faculty Name,Type,Course,Delivery Type,Hours Per Week,Total Students,Coordination Role,Project Name,Project Hours,Semester,Year");
+        
+        foreach (var workload in workloads)
+        {
+            csv.Append($"\"{workload.FacultyEmail}\",");
+            csv.Append($"\"{GetFacultyName(workload)}\",");
+            csv.Append($"\"{workload.Type}\",");
+            csv.Append($"\"{workload.Course?.Name ?? ""}\",");
+            csv.Append($"\"{workload.DeliveryType ?? ""}\",");
+            csv.Append($"\"{workload.HoursPerWeek ?? 0}\",");
+            csv.Append($"\"{workload.TotalStudents ?? 0}\",");
+            csv.Append($"\"{workload.CoordinationRole ?? ""}\",");
+            csv.Append($"\"{workload.ProjectName ?? ""}\",");
+            csv.Append($"\"{workload.ProjectHours ?? 0}\",");
+            csv.Append($"\"{workload.Semester}\",");
+            csv.AppendLine($"\"{workload.Year}\"");
+        }
+
+        return csv.ToString();
+    }
+
+    private async Task ExportWorkloadByYear()
+    {
+        if (!selectedYear.HasValue) return;
+
+        // Use the already filtered workloads instead of filtering again
+        var yearWorkloads = workloads;
+        
+        if (!yearWorkloads.Any())
+        {
+            Console.WriteLine($"No workloads found for year {selectedYear.Value}");
+            return;
+        }
+
+        var csv = GenerateCsv(yearWorkloads);
+        var fileName = $"workload_{selectedYear.Value}_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv";
+        await JSRuntime.InvokeVoidAsync("downloadFile", fileName, csv);
     }
 
     private void ToggleAddForm()
@@ -237,24 +336,7 @@
     {
         if (!selectedWorkloads.Any()) return;
 
-        var csv = "Faculty Email,Faculty Name,Type,Course,Delivery Type,Hours Per Week,Total Students,Coordination Role,Project Name,Project Hours,Semester,Year\n";
-        
-        foreach (var workload in selectedWorkloads)
-        {
-            csv += $"\"{workload.FacultyEmail}\"," +
-                   $"\"{GetFacultyName(workload)}\"," +
-                   $"\"{workload.Type}\"," +
-                   $"\"{workload.Course?.Name ?? ""}\"," +
-                   $"\"{workload.DeliveryType ?? ""}\"," +
-                   $"\"{workload.HoursPerWeek ?? 0}\"," +
-                   $"\"{workload.TotalStudents ?? 0}\"," +
-                   $"\"{workload.CoordinationRole ?? ""}\"," +
-                   $"\"{workload.ProjectName ?? ""}\"," +
-                   $"\"{workload.ProjectHours ?? 0}\"," +
-                   $"\"{workload.Semester}\"," +
-                   $"\"{workload.Year}\"\n";
-        }
-
+        var csv = GenerateCsv(selectedWorkloads);
         var fileName = $"workload_export_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv";
         await JSRuntime.InvokeVoidAsync("downloadFile", fileName, csv);
     }
