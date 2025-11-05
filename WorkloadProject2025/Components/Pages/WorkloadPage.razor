@@ -44,12 +44,13 @@
     <!-- Year Filter and Export Section -->
     <MudPaper Class="pa-4 mb-4" Elevation="2">
         <MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
-            <MudSelect @bind-Value="selectedYear" 
+            <MudSelect Value="selectedYear" 
                        Label="Select Year" 
                        Variant="Variant.Outlined"
                        Style="max-width: 200px;"
                        T="int?"
-                       AnchorOrigin="Origin.BottomCenter">
+                       AnchorOrigin="Origin.BottomCenter"
+                       ValueChanged="OnYearChanged">
                 <MudSelectItem Value="@((int?)null)">All Years</MudSelectItem>
                 @foreach (var year in availableYears)
                 {
@@ -62,12 +63,6 @@
                        OnClick="ExportWorkloadByYear"
                        Disabled="@(selectedYear == null)">
                 Export Year @(selectedYear?.ToString() ?? "")
-            </MudButton>
-            <MudButton Variant="Variant.Outlined" 
-                       Color="Color.Primary" 
-                       StartIcon="@Icons.Material.Filled.FilterAlt"
-                       OnClick="FilterByYear">
-                Apply Filter
             </MudButton>
         </MudStack>
     </MudPaper>
@@ -246,10 +241,10 @@
         return allWorkloads;
     }
 
-    private void FilterByYear()
+    private void OnYearChanged(int? year)
     {
+        selectedYear = year;
         workloads = GetWorkloadsByYear(selectedYear);
-        StateHasChanged();
     }
 
     private string GenerateCsv(IEnumerable<FacultyWorkload> workloads)
@@ -280,7 +275,8 @@
     {
         if (!selectedYear.HasValue) return;
 
-        var yearWorkloads = GetWorkloadsByYear(selectedYear);
+        // Use the already filtered workloads instead of filtering again
+        var yearWorkloads = workloads;
         
         if (!yearWorkloads.Any())
         {
