@@ -2,6 +2,7 @@
 @inject IFacultyWorkloadService workloadService
 @inject IFacultyService facultyService
 @inject ICourseService courseService
+@inject ISnackbar Snackbar
 
 <MudCard Class="mx-auto mt-6 pa-4" Style="max-width: 800px">
     <MudCardHeader>
@@ -183,8 +184,52 @@
     {
         try
         {
+            // Validate required fields
+            if (string.IsNullOrWhiteSpace(workload.FacultyEmail))
+            {
+                Snackbar.Add("Please select a faculty member", Severity.Warning);
+                return;
+            }
+
+            if (workload.Type == WorkloadType.course)
+            {
+                if (workload.CourseId == null || workload.CourseId == 0)
+                {
+                    Snackbar.Add("Please select a course", Severity.Warning);
+                    return;
+                }
+                if (workload.HoursPerWeek == null)
+                {
+                    Snackbar.Add("Please select hours per week", Severity.Warning);
+                    return;
+                }
+            }
+            else if (workload.Type == WorkloadType.Coordination)
+            {
+                if (string.IsNullOrWhiteSpace(workload.CoordinationRole))
+                {
+                    Snackbar.Add("Please enter coordination role", Severity.Warning);
+                    return;
+                }
+                if (workload.HoursPerWeek == null)
+                {
+                    Snackbar.Add("Please select hours per week", Severity.Warning);
+                    return;
+                }
+            }
+            else if (workload.Type == WorkloadType.Project)
+            {
+                if (string.IsNullOrWhiteSpace(workload.ProjectName))
+                {
+                    Snackbar.Add("Please enter project name", Severity.Warning);
+                    return;
+                }
+            }
+
             await workloadService.AddAsync(workload);
             Console.WriteLine($"Saving Workload for Faculty: {workload.FacultyEmail}");
+            
+            Snackbar.Add("Workload entry added successfully!", Severity.Success);
             
             // Notify parent component
             await OnWorkloadAdded.InvokeAsync();
@@ -194,6 +239,7 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Error saving workload: {ex.Message}");
+            Snackbar.Add($"Error saving workload: {ex.Message}", Severity.Error);
         }
     }
 }
