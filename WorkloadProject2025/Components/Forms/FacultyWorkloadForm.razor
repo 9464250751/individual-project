@@ -43,10 +43,11 @@
                            Label="Select Course" 
                            Required="true"
                            Variant="Variant.Outlined"
+                           T="int?"
                            AnchorOrigin="Origin.BottomCenter">
                     @foreach (var course in courses)
                     {
-                        <MudSelectItem Value="@course.Id">
+                        <MudSelectItem T="int?" Value="@course.Id">
                             @course.Name (@course.Hours hrs)
                         </MudSelectItem>
                     }
@@ -68,16 +69,17 @@
                            Label="Hours Per Week" 
                            Required="true"
                            Variant="Variant.Outlined"
+                           T="decimal?"
                            AnchorOrigin="Origin.BottomCenter">
-                    <MudSelectItem Value="@((decimal?)1)">1 hour</MudSelectItem>
-                    <MudSelectItem Value="@((decimal?)2)">2 hours</MudSelectItem>
-                    <MudSelectItem Value="@((decimal?)3)">3 hours</MudSelectItem>
-                    <MudSelectItem Value="@((decimal?)4)">4 hours</MudSelectItem>
-                    <MudSelectItem Value="@((decimal?)5)">5 hours</MudSelectItem>
-                    <MudSelectItem Value="@((decimal?)6)">6 hours</MudSelectItem>
-                    <MudSelectItem Value="@((decimal?)8)">8 hours</MudSelectItem>
-                    <MudSelectItem Value="@((decimal?)10)">10 hours</MudSelectItem>
-                    <MudSelectItem Value="@((decimal?)12)">12 hours</MudSelectItem>
+                    <MudSelectItem T="decimal?" Value="@((decimal?)1)">1 hour</MudSelectItem>
+                    <MudSelectItem T="decimal?" Value="@((decimal?)2)">2 hours</MudSelectItem>
+                    <MudSelectItem T="decimal?" Value="@((decimal?)3)">3 hours</MudSelectItem>
+                    <MudSelectItem T="decimal?" Value="@((decimal?)4)">4 hours</MudSelectItem>
+                    <MudSelectItem T="decimal?" Value="@((decimal?)5)">5 hours</MudSelectItem>
+                    <MudSelectItem T="decimal?" Value="@((decimal?)6)">6 hours</MudSelectItem>
+                    <MudSelectItem T="decimal?" Value="@((decimal?)8)">8 hours</MudSelectItem>
+                    <MudSelectItem T="decimal?" Value="@((decimal?)10)">10 hours</MudSelectItem>
+                    <MudSelectItem T="decimal?" Value="@((decimal?)12)">12 hours</MudSelectItem>
                 </MudSelect>
 
                 <!-- Total Students -->
@@ -98,11 +100,12 @@
                            Label="Hours Per Week" 
                            Required="true"
                            Variant="Variant.Outlined"
+                           T="decimal?"
                            AnchorOrigin="Origin.BottomCenter">
-                    <MudSelectItem Value="@((decimal?)2)">2 hours</MudSelectItem>
-                    <MudSelectItem Value="@((decimal?)4)">4 hours</MudSelectItem>
-                    <MudSelectItem Value="@((decimal?)6)">6 hours</MudSelectItem>
-                    <MudSelectItem Value="@((decimal?)8)">8 hours</MudSelectItem>
+                    <MudSelectItem T="decimal?" Value="@((decimal?)2)">2 hours</MudSelectItem>
+                    <MudSelectItem T="decimal?" Value="@((decimal?)4)">4 hours</MudSelectItem>
+                    <MudSelectItem T="decimal?" Value="@((decimal?)6)">6 hours</MudSelectItem>
+                    <MudSelectItem T="decimal?" Value="@((decimal?)8)">8 hours</MudSelectItem>
                 </MudSelect>
             }
             else if (workload.Type == WorkloadType.Project)
