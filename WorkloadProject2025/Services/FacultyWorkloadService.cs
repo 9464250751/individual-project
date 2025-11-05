@@ -50,6 +50,14 @@ namespace WorkloadProject2025.Services
             if (workload == null)
                 throw new ArgumentNullException(nameof(workload));
 
+            if (string.IsNullOrWhiteSpace(workload.FacultyEmail))
+                throw new ArgumentException("Faculty email is required", nameof(workload));
+
+            // Verify faculty exists
+            var facultyExists = await _context.Faculty.AnyAsync(f => f.Email == workload.FacultyEmail, cancellationToken);
+            if (!facultyExists)
+                throw new InvalidOperationException($"Faculty with email '{workload.FacultyEmail}' does not exist");
+
             _context.FacultyWorkloads.Add(workload);
             await _context.SaveChangesAsync(cancellationToken);
 

@@ -11,7 +11,7 @@
     {
         public int Id { get; set; }
 
-        public string FacultyEmail { get; set; }   // Faculty Email as foreign key
+        public string FacultyEmail { get; set; } = string.Empty;   // Faculty Email as foreign key
         public Faculty? Faculty { get; set; }
         public WorkloadType Type { get; set; }
 
